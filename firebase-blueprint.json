@@ -1,0 +1,25 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "User request for a service",
+      "type": "object",
+      "properties": {
+        "actionTitle": { "type": "string", "maxLength": 100 },
+        "actionType": { "type": "string", "maxLength": 50 },
+        "accountLink": { "type": "string", "maxLength": 500 },
+        "transferNumber": { "type": "string", "maxLength": 20 },
+        "whatsappNumber": { "type": "string", "maxLength": 20 },
+        "status": { "type": "string", "enum": ["pending", "completed", "rejected"] },
+        "createdAt": { "type": "timestamp" }
+      },
+      "required": ["actionTitle", "actionType", "accountLink", "transferNumber", "whatsappNumber", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Stores user requests"
+    }
+  }
+}

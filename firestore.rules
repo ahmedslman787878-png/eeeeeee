@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    match /admins/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create, update: if isSignedIn() 
+                    && request.auth.uid == userId 
+                    && incoming().keys().hasAll(['password', 'role'])
+                    && incoming().keys().size() == 2
+                    && incoming().password == 'ahmed787878'
+                    && incoming().role == 'admin';
+      allow delete: if false;
+    }
+    
+    function isValidOrder(data) {
+       return data.keys().hasAll(['actionTitle', 'actionType', 'accountLink', 'transferNumber', 'whatsappNumber', 'status', 'createdAt', 'userId'])
+              && data.keys().size() == 8
+              && data.userId == request.auth.uid
+              && data.status == 'pending'
+              && data.actionTitle is string && data.actionTitle.size() <= 100
+              && data.actionType is string && data.actionType.size() <= 50
+              && data.accountLink is string && data.accountLink.size() <= 500
+              && data.transferNumber is string && data.transferNumber.size() <= 20
+              && data.whatsappNumber is string && data.whatsappNumber.size() <= 20
+              && data.createdAt == request.time;
+    }
+
+    match /orders/{orderId} {
+      allow create: if isSignedIn() && isValidOrder(incoming());
+      
+      allow read: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
