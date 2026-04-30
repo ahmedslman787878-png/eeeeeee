@@ -151,21 +151,6 @@ export default function App() {
       return;
     }
 
-    let currentUser = auth.currentUser;
-    if (!currentUser) {
-      try {
-        const userCred = await signInAnonymously(auth);
-        currentUser = userCred.user;
-      } catch (err: any) {
-        if (err.code === 'auth/admin-restricted-operation') {
-           alert("لضمان عمل التطبيق، يرجى الانتقال إلى منصة Firebase وتفعيل تسجيل الدخول المجهول (Anonymous Auth) من قسم (Authentication -> Sign-in method).");
-           return;
-        }
-        alert('حدث خطأ في النظام. يرجى تفعيل Anonymous Login من لوحة تحكم Firebase.');
-        return;
-      }
-    }
-
     try {
       const orderData = {
         actionTitle: selectedAction.title,
@@ -174,7 +159,7 @@ export default function App() {
         transferNumber: tNumber,
         whatsappNumber: wNumber,
         status: 'pending',
-        userId: currentUser.uid,
+        userId: auth.currentUser?.uid || 'anonymous',
         createdAt: serverTimestamp()
       };
       await addDoc(collection(db, 'orders'), orderData);
@@ -193,30 +178,12 @@ export default function App() {
   const submitAdminPassword = async () => {
     setAdminError('');
     if (adminPassword === "ahmed787878") {
-       let currentUser = auth.currentUser;
-       if (!currentUser) {
-          try {
-             const userCred = await signInAnonymously(auth);
-             currentUser = userCred.user;
-          } catch (authErr: any) {
-             if (authErr.code === 'auth/admin-restricted-operation') {
-                setAdminError("يرجى الانتقال إلى منصة Firebase وتفعيل تسجيل الدخول المجهول (Anonymous Auth) من قسم (Authentication -> Sign-in method).");
-                return;
-             }
-             setAdminError('تعذر تسجيل الدخول المجهول.');
-             return;
-          }
-       }
-
        try {
-          // Make user admin in Firestore
-          await setDoc(doc(db, "admins", currentUser.uid), { role: "admin", password: adminPassword });
           setShowAdminLogin(false);
           setAdminPassword('');
           loadAdminOrders();
           navigate('ADMIN');
        } catch (error: any) {
-          try { handleFirestoreError(error, OperationType.WRITE, 'admins'); } catch (e) {}
           setAdminError('تعذر الدخول. تأكد من إعدادات قاعدة البيانات: ' + (error.message || ''));
        }
     } else {

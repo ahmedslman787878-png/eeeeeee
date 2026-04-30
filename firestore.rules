@@ -35,9 +35,8 @@ service cloud.firestore {
     }
 
     match /orders/{orderId} {
-      allow create: if isSignedIn() && isValidOrder(incoming());
-      
-      allow read: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+      allow create: if true;
+      allow read: if true;
       allow update: if false;
       allow delete: if false;
     }
