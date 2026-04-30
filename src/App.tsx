@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { db, auth } from './firebase';
 import { collection, addDoc, serverTimestamp, getDocs, doc, setDoc, query, orderBy } from 'firebase/firestore';
-import { signInAnonymously } from 'firebase/auth';
 
 enum OperationType {
   CREATE = 'create',
@@ -127,8 +126,7 @@ export default function App() {
   const [adminError, setAdminError] = useState('');
 
   useEffect(() => {
-    // Attempt silent anonymous auth
-    signInAnonymously(auth).catch(err => console.warn('Anonymous auth failed. Please enable it in Firebase console.', err));
+    // No auth needed
   }, []);
 
   const navigate = (newView: typeof view) => {
